@@ -1,0 +1,110 @@
+[
+    {
+      "name": "ca_address_sk",
+      "type": "INTEGER"
+    },
+    {
+      "name": "ca_address_id",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_street_number",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_street_name",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_street_type",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_suite_number",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_city",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_county",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_state",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_zip",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_country",
+      "type": "STRING"
+    },
+    {
+      "name": "ca_gmt_offset",
+      "type": "FLOAT"
+    },
+    {
+      "name": "ca_location_type",
+      "type": "STRING"
+    },
+    {
+        "name": "metadata_before",
+        "type": "STRING"
+      },
+      {
+        "name": "metadata_userdata",
+        "type": "STRING"
+      },
+    
+    {
+      "fields": [
+        {
+          "name": "TableName",
+          "type": "STRING"
+        },
+        {
+          "name": "TxnID",
+          "type": "STRING"
+        },
+        {
+          "name": "OperationName",
+          "type": "STRING"
+        },
+        {
+          "name": "TimeStamp",
+          "type": "TIMESTAMP"
+        },
+        {
+          "name": "PK_UPDATE",
+          "type": "BOOLEAN"
+        },
+        {
+            "name": "dataPresenceBitMap",
+            "type": "STRING"
+          },
+          
+        {
+            "name": "beforePresenceBitMap",
+            "type": "STRING"
+          },
+          {
+            "name": "typeUUID",
+            "type": "STRING"
+          },
+          {
+            "name": "idstring",
+            "type": "STRING"
+          }
+
+          
+
+      ],
+      "name": "metadata",
+      "type": "RECORD"
+    }
+  ]
+  

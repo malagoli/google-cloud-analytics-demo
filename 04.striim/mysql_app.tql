@@ -1,0 +1,36 @@
+
+CREATE APPLICATION mysql;
+
+CREATE OR REPLACE SOURCE MysqlSRC USING MysqlReader  ( 
+  Compression: false,
+  connectionRetryPolicy: 'retryInterval=30, maxRetries=3',
+  FilterTransactionBoundaries: true,
+  Username: 'root',
+  Password_encrypted: true,
+  SendBeforeImage: true,
+  ConnectionURL: 'mysql://172.29.192.6:3306/fusion_demo',
+  Tables: 'fusion_demo.customer_address',
+  adapterName: 'MysqlReader',
+  Password: 'z4pdvtsyZZKyqgDm0ckY1qkEqLphswuF',
+  Password_encrypted: 'true'
+ ) 
+OUTPUT TO MysqlStream ;
+
+CREATE OR REPLACE TARGET Publish USING GooglePubSubWriter  ( 
+  PubSubConfig: 'RetryDelay:5,MaxRetryDelay:600,TotalTimeout:10,InitialRpcTimeout:10,MaxRpcTimeout:10,RetryDelayMultiplier:2.0,NumThreads:10',
+  BatchPolicy: 'EventCount:1000,Interval:1m,Size:1000000',
+  ProjectId: 'fusion-demo-269315',
+  adapterName: 'GooglePubSubWriter',
+  Topic: 'CDC',
+  ServiceAccountKey: 'serviceaccount.json'
+ ) 
+FORMAT USING JSONFormatter  (   handler: 'com.webaction.proc.JSONFormatter',
+  formatterName: 'JSONFormatter',
+  jsonMemberDelimiter: '\n',
+  jsonobjectdelimiter: '\n',
+  EventsAsArrayOfJsonObjects: 'false'
+ ) 
+INPUT FROM MysqlStream;
+
+END APPLICATION mysql;
+

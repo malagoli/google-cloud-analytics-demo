@@ -1,0 +1,261 @@
+{
+    "name": "test2_v1",
+    "description": "Data Streams Application",
+    "artifact": {
+        "name": "cdap-data-streams",
+        "version": "6.1.1",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "Pub/Sub",
+                "to": "Projection"
+            },
+            {
+                "from": "Projection",
+                "to": "Parse original message"
+            },
+            {
+                "from": "Parse original message",
+                "to": "Extract Message Metadata"
+            },
+            {
+                "from": "Extract Message Metadata",
+                "to": "Table customer_address"
+            },
+            {
+                "from": "Table customer_address",
+                "to": "Projection2"
+            },
+            {
+                "from": "Projection2",
+                "to": "BigQuery"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {
+            "system.spark.spark.streaming.backpressure.enabled": "true"
+        },
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": false,
+        "stages": [
+            {
+                "name": "Pub/Sub",
+                "plugin": {
+                    "name": "GoogleSubscriber",
+                    "type": "streamingsource",
+                    "label": "Pub/Sub",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.13.2",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "auto-detect",
+                        "serviceFilePath": "auto-detect",
+                        "referenceName": "test",
+                        "subscription": "fusion-sub",
+                        "topic": "CDC"
+                    }
+                },
+                "outputSchema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"message\",\"type\":\"bytes\"},{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":{\"logicalType\":\"timestamp-micros\",\"type\":\"long\"}},{\"name\":\"attributes\",\"type\":{\"keys\":\"string\",\"values\":\"string\",\"type\":\"map\"}}]}"
+            },
+            {
+                "name": "Projection",
+                "plugin": {
+                    "name": "Projection",
+                    "type": "transform",
+                    "label": "Projection",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "2.3.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "convert": "message:string",
+                        "keep": "message,attributes,timestamp"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}},{\"name\":\"attributes\",\"type\":{\"type\":\"map\",\"keys\":\"string\",\"values\":\"string\"}}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Pub/Sub",
+                        "schema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"message\",\"type\":\"bytes\"},{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":{\"logicalType\":\"timestamp-micros\",\"type\":\"long\"}},{\"name\":\"attributes\",\"type\":{\"keys\":\"string\",\"values\":\"string\",\"type\":\"map\"}}]}"
+                    }
+                ]
+            },
+            {
+                "name": "Parse original message",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Parse original message",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.1.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "precondition": "false",
+                        "threshold": "1",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"}]}",
+                        "directives": "parse-as-json :message 1"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"}]}",
+                "inputSchema": [
+                    {
+                        "name": "Projection",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}},{\"name\":\"attributes\",\"type\":{\"type\":\"map\",\"keys\":\"string\",\"values\":\"string\"}}]}"
+                    }
+                ]
+            },
+            {
+                "name": "Extract Message Metadata",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Extract Message Metadata",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.1.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "precondition": "false",
+                        "threshold": "1",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata_OperationName\",\"type\":\"string\"},{\"name\":\"message_metadata_TableName\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata_TxnID\",\"type\":\"string\"},{\"name\":\"message_metadata_TimeStamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}},{\"name\":\"message_metadata_PK_UPDATE\",\"type\":\"boolean\"},{\"name\":\"message_metadata_dataPresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_beforePresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_typeUUID\",\"type\":\"string\"},{\"name\":\"message_metadata_idstring\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}",
+                        "directives": "parse-as-json :message_metadata 1"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata_OperationName\",\"type\":\"string\"},{\"name\":\"message_metadata_TableName\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata_TxnID\",\"type\":\"string\"},{\"name\":\"message_metadata_TimeStamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}},{\"name\":\"message_metadata_PK_UPDATE\",\"type\":\"boolean\"},{\"name\":\"message_metadata_dataPresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_beforePresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_typeUUID\",\"type\":\"string\"},{\"name\":\"message_metadata_idstring\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}",
+                "inputSchema": [
+                    {
+                        "name": "Parse original message",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"}]}"
+                    }
+                ]
+            },
+            {
+                "name": "Table customer_address",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Table customer_address",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.1.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "precondition": "message_metadata_TableName != \"fusion_demo.customer_address\"",
+                        "threshold": "1",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_data_CA_ADDRESS_SK\",\"type\":[\"long\",\"null\"]},{\"name\":\"message_data_CA_ADDRESS_ID\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NAME\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_SUITE_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_CITY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STATE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_ZIP\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTRY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_GMT_OFFSET\",\"type\":[\"float\",\"null\"]},{\"name\":\"message_data_CA_LOCATION_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}",
+                        "directives": "filter-rows-on regex-not-match message_metadata_TableName ^fusion_demo.customer_address$\nparse-as-json :message_data 1"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_data_CA_ADDRESS_SK\",\"type\":[\"long\",\"null\"]},{\"name\":\"message_data_CA_ADDRESS_ID\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NAME\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_SUITE_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_CITY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STATE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_ZIP\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTRY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_GMT_OFFSET\",\"type\":[\"float\",\"null\"]},{\"name\":\"message_data_CA_LOCATION_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}",
+                "inputSchema": [
+                    {
+                        "name": "Extract Message Metadata",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_metadata_OperationName\",\"type\":\"string\"},{\"name\":\"message_metadata_TableName\",\"type\":\"string\"},{\"name\":\"message_data\",\"type\":\"string\"},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata_TxnID\",\"type\":\"string\"},{\"name\":\"message_metadata_TimeStamp\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}},{\"name\":\"message_metadata_PK_UPDATE\",\"type\":\"boolean\"},{\"name\":\"message_metadata_dataPresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_beforePresenceBitMap\",\"type\":\"string\"},{\"name\":\"message_metadata_typeUUID\",\"type\":\"string\"},{\"name\":\"message_metadata_idstring\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}"
+                    }
+                ]
+            },
+            {
+                "name": "Projection2",
+                "plugin": {
+                    "name": "Projection",
+                    "type": "transform",
+                    "label": "Projection2",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "2.3.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "rename": "message_data_CA_ADDRESS_SK:ca_address_sk,message_data_CA_ADDRESS_ID:ca_address_id,message_data_CA_STREET_NUMBER:ca_street_number,message_data_CA_STREET_TYPE:ca_street_type,message_data_CA_SUITE_NUMBER:ca_suite_number,message_data_CA_CITY:ca_city,message_data_CA_COUNTY:ca_county,message_data_CA_STATE:ca_state,message_data_CA_ZIP:ca_zip,message_data_CA_COUNTRY:ca_country,message_data_CA_GMT_OFFSET:ca_gmt_offset,message_data_CA_LOCATION_TYPE:ca_location_type,message_data_CA_STREET_NAME:ca_street_name,message_before:metadata_before,message_userdata:metadata_userdata,message_metadata:metadata"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":[\"long\",\"null\"]},{\"name\":\"ca_address_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"float\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"metadata_before\",\"type\":\"string\"},{\"name\":\"metadata_userdata\",\"type\":\"string\"},{\"name\":\"metadata\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Table customer_address",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"message_data_CA_ADDRESS_SK\",\"type\":[\"long\",\"null\"]},{\"name\":\"message_data_CA_ADDRESS_ID\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_NAME\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STREET_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_SUITE_NUMBER\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_CITY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_STATE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_ZIP\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_COUNTRY\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_data_CA_GMT_OFFSET\",\"type\":[\"float\",\"null\"]},{\"name\":\"message_data_CA_LOCATION_TYPE\",\"type\":[\"string\",\"null\"]},{\"name\":\"message_before\",\"type\":\"string\"},{\"name\":\"message_userdata\",\"type\":\"string\"},{\"name\":\"message_metadata\",\"type\":\"string\"}]}"
+                    }
+                ]
+            },
+            {
+                "name": "BigQuery",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.13.2",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "auto-detect",
+                        "serviceFilePath": "auto-detect",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":[\"long\",\"null\"]},{\"name\":\"ca_address_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"float\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"metadata_before\",\"type\":\"string\"},{\"name\":\"metadata_userdata\",\"type\":\"string\"},{\"name\":\"metadata\",\"type\":\"string\"}]}",
+                        "referenceName": "bq_out",
+                        "dataset": "cdc",
+                        "table": "customer_address"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":[\"long\",\"null\"]},{\"name\":\"ca_address_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"float\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"metadata_before\",\"type\":\"string\"},{\"name\":\"metadata_userdata\",\"type\":\"string\"},{\"name\":\"metadata\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Projection2",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":[\"long\",\"null\"]},{\"name\":\"ca_address_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"float\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"metadata_before\",\"type\":\"string\"},{\"name\":\"metadata_userdata\",\"type\":\"string\"},{\"name\":\"metadata\",\"type\":\"string\"}]}"
+                    }
+                ]
+            }
+        ],
+        "batchInterval": "10s",
+        "clientResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "disableCheckpoints": false,
+        "checkpointDir": "gs://df-8198767719640428258-zajl4c3hlei6veo7ra6sj4zmxa/checkpoints/",
+        "stopGracefully": true,
+        "description": "Data Streams Application"
+    }
+}

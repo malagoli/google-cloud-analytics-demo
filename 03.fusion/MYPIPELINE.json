@@ -1,0 +1,252 @@
+{
+    "name": "MYPIPELINE",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.1.1",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "GCS",
+                "to": "FastFilter"
+            },
+            {
+                "from": "FastFilter",
+                "to": "CSVParser"
+            },
+            {
+                "from": "CSVParser",
+                "to": "mysql"
+            },
+            {
+                "from": "mysql",
+                "to": "GCS Move"
+            },
+            {
+                "from": "customer_address",
+                "to": "GCS"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": false,
+        "stages": [
+            {
+                "name": "GCS",
+                "plugin": {
+                    "name": "GCSFile",
+                    "type": "batchsource",
+                    "label": "GCS",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.13.2",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "fusion-demo-269315",
+                        "format": "text",
+                        "serviceFilePath": "auto-detect",
+                        "filenameOnly": "false",
+                        "recursive": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"filepath\",\"type\":\"string\"}]}",
+                        "referenceName": "tpc-benchmark.customer_address.dat",
+                        "copyHeader": "false",
+                        "delimiter": "|",
+                        "pathField": "filepath",
+                        "path": "gs://${bucket}/${sourcePath}"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"filepath\",\"type\":\"string\"}]}",
+                "type": "batchsource",
+                "label": "GCS",
+                "icon": "fa-plug"
+            },
+            {
+                "name": "FastFilter",
+                "plugin": {
+                    "name": "FastFilter",
+                    "type": "transform",
+                    "label": "FastFilter",
+                    "artifact": {
+                        "name": "fast-filter-transform",
+                        "version": "1.8.0",
+                        "scope": "USER"
+                    },
+                    "properties": {
+                        "operator": "contains",
+                        "shouldIgnoreCase": "false",
+                        "sourceField": "filepath",
+                        "criteria": "customer_address"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"filepath\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "GCS",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"filepath\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "type": "transform",
+                "label": "FastFilter",
+                "icon": "icon-fastfilter"
+            },
+            {
+                "name": "CSVParser",
+                "plugin": {
+                    "name": "CSVParser",
+                    "type": "transform",
+                    "label": "CSVParser",
+                    "artifact": {
+                        "name": "transform-plugins",
+                        "version": "2.3.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "format": "Pipe Delimited",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":\"int\"},{\"name\":\"ca_address_id\",\"type\":\"string\"},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"double\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]}]}",
+                        "field": "body"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":\"int\"},{\"name\":\"ca_address_id\",\"type\":\"string\"},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"double\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "FastFilter",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"filepath\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "type": "transform",
+                "label": "CSVParser",
+                "icon": "icon-csvparser"
+            },
+            {
+                "name": "mysql",
+                "plugin": {
+                    "name": "Database",
+                    "type": "batchsink",
+                    "label": "mysql",
+                    "artifact": {
+                        "name": "database-plugins",
+                        "version": "2.3.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "jdbcPluginType": "jdbc",
+                        "enableAutoCommit": "false",
+                        "columnNameCase": "No change",
+                        "transactionIsolationLevel": "TRANSACTION_SERIALIZABLE",
+                        "referenceName": "customer_address",
+                        "jdbcPluginName": "cloudsql-mysql",
+                        "connectionString": "jdbc:mysql://google/fusion_demo?cloudSqlInstance=customer-demo-267815:us-central1:mysqldemo&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useSSL=true",
+                        "tableName": "customer_address",
+                        "user": "root",
+                        "password": "7tC7Gh8bcodFArOO",
+                        "columns": "ca_address_sk,ca_address_id,ca_street_number,ca_street_name,ca_street_type,ca_suite_number,ca_city,ca_county,ca_state,ca_zip,ca_country,ca_gmt_offset,ca_location_type"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": ""
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "CSVParser",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ca_address_sk\",\"type\":\"int\"},{\"name\":\"ca_address_id\",\"type\":\"string\"},{\"name\":\"ca_street_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_street_type\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_suite_number\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_city\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_county\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_state\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_zip\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_country\",\"type\":[\"string\",\"null\"]},{\"name\":\"ca_gmt_offset\",\"type\":[\"double\",\"null\"]},{\"name\":\"ca_location_type\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "type": "batchsink",
+                "label": "mysql",
+                "icon": "icon-database"
+            },
+            {
+                "name": "GCS Move",
+                "plugin": {
+                    "name": "GCSMove",
+                    "type": "action",
+                    "label": "GCS Move",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.13.2",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "project": "auto-detect",
+                        "recursive": "false",
+                        "overwrite": "false",
+                        "serviceFilePath": "auto-detect",
+                        "sourcePath": "gs://${bucket}/${sourcePath}",
+                        "destPath": "gs://${bucket}/${destinationPath}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": ""
+                    }
+                ],
+                "type": "action",
+                "label": "GCS Move",
+                "icon": "fa-plug"
+            },
+            {
+                "name": "customer_address",
+                "plugin": {
+                    "name": "Database",
+                    "type": "action",
+                    "label": "customer_address",
+                    "artifact": {
+                        "name": "database-plugins",
+                        "version": "2.3.4",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "jdbcPluginType": "jdbc",
+                        "enableAutoCommit": "false",
+                        "jdbcPluginName": "cloudsql-mysql",
+                        "connectionString": "jdbc:mysql://google/fusion_demo?cloudSqlInstance=customer-demo-267815:us-central1:mysqldemo&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useSSL=true",
+                        "query": "create table if not exists customer_address\n(\n    ca_address_sk             integer               not null,\n    ca_address_id             char(16)              not null,\n    ca_street_number          char(10)                      ,\n    ca_street_name            varchar(60)                   ,\n    ca_street_type            char(15)                      ,\n    ca_suite_number           char(10)                      ,\n    ca_city                   varchar(60)                   ,\n    ca_county                 varchar(30)                   ,\n    ca_state                  char(2)                       ,\n    ca_zip                    char(10)                      ,\n    ca_country                varchar(20)                   ,\n    ca_gmt_offset             decimal(5,2)                  ,\n    ca_location_type          char(20)                      \n);",
+                        "user": "root",
+                        "password": "7tC7Gh8bcodFArOO"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": ""
+                    }
+                ],
+                "type": "action",
+                "label": "customer_address",
+                "icon": "icon-database"
+            }
+        ],
+        "schedule": "0 * * * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1
+    }
+}
