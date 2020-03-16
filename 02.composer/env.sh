@@ -1,0 +1,2 @@
+export BUCKET=gs://YOURCOMPOSERBUCKET
+
