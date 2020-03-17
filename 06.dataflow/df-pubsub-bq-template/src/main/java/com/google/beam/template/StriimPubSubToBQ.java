@@ -190,7 +190,9 @@ public class StriimPubSubToBQ {
         @ProcessElement
         public void processElement(ProcessContext context) {
             StriimElement el =  new StriimElement(context.element(), metadataField.get());
-            context.output(el);
+            if(el.getTableName() != null) {
+                context.output(el);
+            }
         }
     }
 

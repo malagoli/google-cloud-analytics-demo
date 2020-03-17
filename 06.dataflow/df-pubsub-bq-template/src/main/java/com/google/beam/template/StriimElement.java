@@ -74,7 +74,9 @@ public class StriimElement implements Serializable {
       JsonObject metadata = jsonObject.get("metadata").getAsJsonObject();
       JsonObject data = jsonObject.get("data").getAsJsonObject();
 
-      tableName = metadata.get("TableName").getAsString();
+      if(metadata.get("TableName") != null ) {
+        tableName = metadata.get("TableName").getAsString();
+      }
       operation = metadata.get("OperationName").getAsString();
 
       if(metadataField != null ) {

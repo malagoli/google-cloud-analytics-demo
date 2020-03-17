@@ -118,10 +118,10 @@ public class TestStriimPubSubToBQ {
     StriimPubSubToBQOptions options =
             TestPipeline.testingPipelineOptions().as(StriimPubSubToBQOptions.class);
 
-    String projectId = "fusion-demo-269315";
+    String projectId = "customer-demo-267815";
     //String topicId = "cdc";
     String subscriptionId = "fusion-sub";
-    String bigQueryDataset = "cdc";
+    String bigQueryDataset = "tpcds_demo";
     String metadataField = "metadata";
     String schemaReplacer = "fusion_demo";
 
