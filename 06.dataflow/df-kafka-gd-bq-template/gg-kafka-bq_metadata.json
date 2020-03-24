@@ -1,0 +1,59 @@
+{
+  "description": "A pipeline that reads Striim messages (Json Formatter) from Pub/Sub and writes the results into BigQUery",
+  "name": "Striim Pub/Sub to BigQuery",
+  "parameters": [
+    {
+      "is_optional": false,
+      "name": "outputProject",
+      "helpText": "Name of the BigQuery project to write the data to",
+      "label": "Output BigQuery Project"
+    },
+    {
+      "is_optional": false,
+      "name": "outputDataset",
+      "helpText": "BigQuery Dataset to write the output to",
+      "label": "Output BigQuery Dataset"
+    },
+    {
+      "is_optional": false,
+      "name": "topic",
+      "helpText": "The Kafka topic to consume from.",
+      "label": "Source Kafka topic"
+    },
+    {
+      "is_optional": false,
+      "name": "bootstrapServer",
+      "helpText": "The Kafka Bootstrap server e.g. broker_1:9092,broker_2:9092 ",
+      "label": "Kafka bootstrap server"
+    },
+    {
+      "is_optional": true,
+      "name": "key",
+      "helpText": "The Confluent Kafka key",
+      "label": "Kafka API key"
+    },
+    {
+      "is_optional": true,
+      "name": "secret",
+      "helpText": "The Confluent Kafka secret",
+      "label": "Kafka API secret"
+    },
+    {
+      "is_optional": true,
+      "name": "schemaReplacer",
+      "helpText": "If specified the value will be deleted from destination table. E.g. if 'myschema' is specified and the source table is 'myschema.mytable' the output BigQuery table name will by mytable.",
+      "label": "Schema name replacer"
+    },
+    {
+      "is_optional": true,
+      "name": "metadataField",
+      "helpText": "If specified is the field where the Striim metadata will be saved",
+      "label": "CDC metadata field"
+    }
+
+
+
+
+
+  ]
+}

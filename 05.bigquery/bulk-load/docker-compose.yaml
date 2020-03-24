@@ -1,0 +1,12 @@
+version: '3'
+services:
+  loader:
+    build: .
+    environment:
+        #SCALE FACTOR (in GB), 0.1 for 100 MB
+        - SCALE=1
+        - GCS_URL=gs://XXXX/bulk-load
+        - PROJECT=XXX
+        - DATASET=tpcds_full
+    volumes:
+        - ${GOOGLE_APPLICATION_CREDENTIALS}:/serviceaccount.json
