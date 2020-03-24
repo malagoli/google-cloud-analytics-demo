@@ -1,6 +1,6 @@
 FROM openjdk
 RUN curl https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz --output /tmp/google-cloud-sdk.tar.gz
-
+   
 RUN curl https://github.com/Teradata/tpcds/releases/download/1.2/tpcds-1.2-jar-with-dependencies.jar --output tpcds.jar
 
 RUN mkdir -p /usr/local/gcloud \
