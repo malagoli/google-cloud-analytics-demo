@@ -87,7 +87,9 @@ public class GoldenGateElement implements Serializable {
       this.metadata.setCurrent_ts( jsonObject.get("current_ts").getAsString() );
       this.metadata.setPos( jsonObject.get("pos").getAsString() );
       this.metadata.setOp_ts( jsonObject.get("op_ts").getAsString() );
-      this.metadata.setJsonBefore( jsonObject.get("before").getAsJsonObject().toString());
+      if(jsonObject.get("before") != null) {
+        this.metadata.setJsonBefore( jsonObject.get("before").getAsJsonObject().toString());
+      }
 
       data.add(metadataField, this.metadata.getAsJson());
       jsonData = data.toString();

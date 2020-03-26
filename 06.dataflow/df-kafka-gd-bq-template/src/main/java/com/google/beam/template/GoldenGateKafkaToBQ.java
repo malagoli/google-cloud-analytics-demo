@@ -35,6 +35,8 @@ import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.ValueInSingleWindow;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,10 +155,10 @@ public class GoldenGateKafkaToBQ {
                 .apply(
 
                         "ReadMessages",
-                        KafkaIO.<Long, String>read()
+                        KafkaIO.<String, String>read()
                                 .withBootstrapServers(server)
                                 .withTopic(topic)
-                                .withKeyDeserializer(LongDeserializer.class)
+                                .withKeyDeserializer(StringDeserializer.class)
                                 .withValueDeserializer(StringDeserializer.class)
                                 .withConsumerConfigUpdates(propBuilder(key, secret))
                 .withoutMetadata())

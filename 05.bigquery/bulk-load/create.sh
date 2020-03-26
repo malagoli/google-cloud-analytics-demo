@@ -11,4 +11,4 @@ done
 
 gcloud auth activate-service-account --key-file /serviceaccount.json
 gsutil cp *.dat $GCS_URL
-./populate.sh
+/populate.sh

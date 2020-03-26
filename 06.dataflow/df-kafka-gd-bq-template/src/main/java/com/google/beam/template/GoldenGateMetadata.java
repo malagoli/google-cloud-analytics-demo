@@ -22,7 +22,9 @@ public class GoldenGateMetadata {
          JsonObject jsonObject = new JsonObject();
          jsonObject.addProperty("current_ts", this.getCurrent_ts());
          jsonObject.addProperty("pos", this.getPos());
-         jsonObject.addProperty("before", this.getJsonBefore());
+         if(this.getJsonBefore() != null) {
+             jsonObject.addProperty("before", this.getJsonBefore());
+         }
          jsonObject.addProperty("tableName", this.getTableName());
          jsonObject.addProperty("operation", this.getOperation());
          jsonObject.addProperty("op_ts", this.getOp_ts());

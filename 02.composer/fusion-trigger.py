@@ -37,12 +37,14 @@ with airflow.DAG(
         move_object=True
     )
 
+
     start_pipeline = CloudDataFusionStartPipelineOperator(
         location=LOCATION,
         pipeline_name=PIPELINE_NAME,
         instance_name=INSTANCE_NAME,
         task_id="start_pipeline",
-        runtime_args='{"bucket": "{{ dag_run.conf["bucket"] }}", "sourcePath": "{{ dag_run.conf["name"].replace("source", "staging") }}", "destinationPath":"{{ dag_run.conf["name"].replace("source", "done") }}" }'
+        runtime_args={"bucket": '{{ dag_run.conf["bucket"] }}', "sourcePath": '{{ dag_run.conf["name"].replace("source", "staging") }}', "destinationPath": '{{ dag_run.conf["name"].replace("source", "done") }}' }
+        #runtime_args='{"bucket": "{{ dag_run.conf["bucket"] }}", "sourcePath": "{{ dag_run.conf["name"].replace("source", "staging") }}", "destinationPath":"{{ dag_run.conf["name"].replace("source", "done") }}" }'
         )
     
 

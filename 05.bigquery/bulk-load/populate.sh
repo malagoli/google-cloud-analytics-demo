@@ -1,7 +1,5 @@
 #!/bin/bash
 # Load into BQ
-export GS_BASE=tpc-benchmark
-
 
 set -e
 
@@ -142,7 +140,67 @@ cd_dep_count:integer,\
 cd_dep_employed_count:integer,\
 cd_dep_college_count:integer
 
-bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.customer ${GCS_URL}/customer_*_4.dat* \
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.customer ${GCS_URL}/customer_1_4.dat* \
+c_customer_sk:integer,\
+c_customer_id:string,\
+c_current_cdemo_sk:integer,\
+c_current_hdemo_sk:integer,\
+c_current_addr_sk:integer,\
+c_first_shipto_date_sk:integer,\
+c_first_sales_date_sk:integer,\
+c_salutation:string,\
+c_first_name:string,\
+c_last_name:string,\
+c_preferred_cust_flag:string,\
+c_birth_day:integer,\
+c_birth_month:integer,\
+c_birth_year:integer,\
+c_birth_country:string,\
+c_login:string,\
+c_email_address:string,\
+c_last_review_date:string
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.customer ${GCS_URL}/customer_2_4.dat* \
+c_customer_sk:integer,\
+c_customer_id:string,\
+c_current_cdemo_sk:integer,\
+c_current_hdemo_sk:integer,\
+c_current_addr_sk:integer,\
+c_first_shipto_date_sk:integer,\
+c_first_sales_date_sk:integer,\
+c_salutation:string,\
+c_first_name:string,\
+c_last_name:string,\
+c_preferred_cust_flag:string,\
+c_birth_day:integer,\
+c_birth_month:integer,\
+c_birth_year:integer,\
+c_birth_country:string,\
+c_login:string,\
+c_email_address:string,\
+c_last_review_date:string
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.customer ${GCS_URL}/customer_3_4.dat* \
+c_customer_sk:integer,\
+c_customer_id:string,\
+c_current_cdemo_sk:integer,\
+c_current_hdemo_sk:integer,\
+c_current_addr_sk:integer,\
+c_first_shipto_date_sk:integer,\
+c_first_sales_date_sk:integer,\
+c_salutation:string,\
+c_first_name:string,\
+c_last_name:string,\
+c_preferred_cust_flag:string,\
+c_birth_day:integer,\
+c_birth_month:integer,\
+c_birth_year:integer,\
+c_birth_country:string,\
+c_login:string,\
+c_email_address:string,\
+c_last_review_date:string
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.customer ${GCS_URL}/customer_4_4.dat* \
 c_customer_sk:integer,\
 c_customer_id:string,\
 c_current_cdemo_sk:integer,\
@@ -315,7 +373,100 @@ ss_net_paid:float,\
 ss_net_paid_inc_tax:float,\
 ss_net_profit:float
 
-bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.store ${GCS_URL}/store_*_4* \
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.store ${GCS_URL}/store_1_4* \
+s_store_sk:integer,\
+s_store_id:string,\
+s_rec_start_date:string,\
+s_rec_end_date:string,\
+s_closed_date_sk:integer,\
+s_store_name:string,\
+s_number_employees:integer,\
+s_floor_space:integer,\
+s_hours:string,\
+s_manager:string,\
+s_market_id:integer,\
+s_geography_class:string,\
+s_market_desc:string,\
+s_market_manager:string,\
+s_division_id:integer,\
+s_division_name:string,\
+s_company_id:integer,\
+s_company_name:string,\
+s_street_number:string,\
+s_street_name:string,\
+s_street_type:string,\
+s_suite_number:string,\
+s_city:string,\
+s_county:string,\
+s_state:string,\
+s_zip:string,\
+s_country:string,\
+s_gmt_offset:float,\
+s_tax_precentage:float
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.store ${GCS_URL}/store_2_4* \
+s_store_sk:integer,\
+s_store_id:string,\
+s_rec_start_date:string,\
+s_rec_end_date:string,\
+s_closed_date_sk:integer,\
+s_store_name:string,\
+s_number_employees:integer,\
+s_floor_space:integer,\
+s_hours:string,\
+s_manager:string,\
+s_market_id:integer,\
+s_geography_class:string,\
+s_market_desc:string,\
+s_market_manager:string,\
+s_division_id:integer,\
+s_division_name:string,\
+s_company_id:integer,\
+s_company_name:string,\
+s_street_number:string,\
+s_street_name:string,\
+s_street_type:string,\
+s_suite_number:string,\
+s_city:string,\
+s_county:string,\
+s_state:string,\
+s_zip:string,\
+s_country:string,\
+s_gmt_offset:float,\
+s_tax_precentage:float
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.store ${GCS_URL}/store_3_4* \
+s_store_sk:integer,\
+s_store_id:string,\
+s_rec_start_date:string,\
+s_rec_end_date:string,\
+s_closed_date_sk:integer,\
+s_store_name:string,\
+s_number_employees:integer,\
+s_floor_space:integer,\
+s_hours:string,\
+s_manager:string,\
+s_market_id:integer,\
+s_geography_class:string,\
+s_market_desc:string,\
+s_market_manager:string,\
+s_division_id:integer,\
+s_division_name:string,\
+s_company_id:integer,\
+s_company_name:string,\
+s_street_number:string,\
+s_street_name:string,\
+s_street_type:string,\
+s_suite_number:string,\
+s_city:string,\
+s_county:string,\
+s_state:string,\
+s_zip:string,\
+s_country:string,\
+s_gmt_offset:float,\
+s_tax_precentage:float
+
+bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.store ${GCS_URL}/store_4_4* \
 s_store_sk:integer,\
 s_store_id:string,\
 s_rec_start_date:string,\
