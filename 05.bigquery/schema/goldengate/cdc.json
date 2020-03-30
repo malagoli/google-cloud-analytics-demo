@@ -1,0 +1,35 @@
+[
+  {
+    "name": "key",
+    "type": "STRING"
+  },
+      {
+        "name": "op_ts",
+        "type": "TIMESTAMP"
+      },
+      {
+        "name": "current_ts",
+        "type": "TIMESTAMP"
+      },
+      {
+        "name": "pos",
+        "type": "STRING"
+      },
+      {
+        "name": "before",
+        "type": "STRING"
+      },
+      {
+        "name": "table",
+        "type": "STRING"
+      },
+      {
+        "name": "op_type",
+        "type": "STRING"
+      },
+      {
+        "name": "after",
+        "type": "STRING"
+      }
+   
+]

@@ -1,4 +1,4 @@
-package com.google.beam.template;
+package com.google.beam;
 
 
 /*
@@ -20,8 +20,11 @@ package com.google.beam.template;
 
 import com.google.api.services.bigquery.model.TableRow;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
+
 import org.apache.beam.sdk.io.gcp.bigquery.*;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition;
@@ -31,19 +34,16 @@ import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.Values;
+
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.ValueInSingleWindow;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 
@@ -60,16 +60,10 @@ public class GoldenGateKafkaToBQ {
      * command-line.
      */
     public interface GoldenGateKafkaToBQOptions extends PipelineOptions {
-        @Description("BigQuery Project to write the output to")
-        String getOutputProject();
+        @Description("BigQuery Table spec to write the output to ProjectID:DatasetID.TableID")
+        String getOutputTableSpec();
 
-        void setOutputProject(String value);
-
-        @Description("BigQuery Dataset to write the output to")
-        String getOutputDataset();
-
-        void setOutputDataset(String value);
-
+        void setOutputTableSpec(String value);
 
         @Description("The Kafka topic to consume from. ")
         String getTopic();
@@ -92,17 +86,6 @@ public class GoldenGateKafkaToBQ {
 
         void setSecret(String value);
 
-
-        @Description(
-                "If specified the value will be deleted from destination table. E.g. if 'myschema' is specified and the source table is 'myschema.mytable' the output table name will by mytable")
-        String getSchemaReplacer();
-
-        void setSchemaReplacer(String value);
-
-        @Description("If specified is the field where the Striim metadata will be saved")
-        String getMetadataField();
-
-        void setMetadataField( String value);
 
 
     }
@@ -132,10 +115,6 @@ public class GoldenGateKafkaToBQ {
      */
     public static PipelineResult run(GoldenGateKafkaToBQOptions options) {
 
-        //TupleTag<TableRow> MAIN_OUT = new TupleTag<TableRow>();
-        //TupleTag<TableRow> DEADLETTER_OUT = new TupleTag<TableRow>();
-
-        // Create the pipeline
         Pipeline pipeline = Pipeline.create(options);
 
 
@@ -143,15 +122,11 @@ public class GoldenGateKafkaToBQ {
         String key = options.getKey();
         String secret = options.getSecret();
         String topic = options.getTopic();
-        String metadataField = options.getMetadataField();
-        String schemaReplacer = options.getSchemaReplacer();
-        String outputDataset = options.getOutputDataset();
-        String outputProject = options.getOutputProject();
 
-        LOG.info("Server ["+server+"] topic ["+topic+"] metadataField ["+metadataField+"] schemaRep ["+schemaReplacer+"] dataset ["+outputDataset+"] project ["+outputProject+"]");
+
 
         // Build & execute pipeline
-        PCollection<String> messages = pipeline
+        PCollection<KV<String, String>> messages = pipeline
                 .apply(
 
                         "ReadMessages",
@@ -161,26 +136,20 @@ public class GoldenGateKafkaToBQ {
                                 .withKeyDeserializer(StringDeserializer.class)
                                 .withValueDeserializer(StringDeserializer.class)
                                 .withConsumerConfigUpdates(propBuilder(key, secret))
-                .withoutMetadata())
-                .apply(Values.<String>create());
+                .withoutMetadata());
+                /*.apply(Values.<String>create());*/
 
 
-        messages.apply("ConvertToGoldenGateMessage", ParDo.of(new KafkaMessageToGoldenGatelementFn(metadataField)))
+        messages.apply("ConvertToGoldenGateMessage", ParDo.of(new KafkaMessageToTableRowFn()))
                                 .apply(
                                         "WriteToBigQuery",
-                                        BigQueryIO.<GoldenGateElement>write()
+                                        BigQueryIO.writeTableRows()
                                                 .withExtendedErrorInfo()
-                                                .to(
-                                                        input ->
-                                                                getTableDestination(
-                                                                        input, outputProject,
-                                                                       outputDataset, schemaReplacer))
-                                                .withFormatFunction(
-                                                        (GoldenGateElement msg) -> msg.getTableRow())
+                                                .to(options.getOutputTableSpec())
                                                 .withCreateDisposition(CreateDisposition.CREATE_NEVER)
                                                 .withWriteDisposition(WriteDisposition.WRITE_APPEND))
                                 .getFailedInsertsWithErr()
-                                .apply("BQ-ErrorLogger", ParDo.of(new BigQueryErrorLogger()));
+                                .apply( "BQ-ErrorLogger", ParDo.of(new BigQueryErrorLogger()));
         return pipeline.run();
     }
 
@@ -197,54 +166,35 @@ public class GoldenGateKafkaToBQ {
         return props;
     }
 
-    static TableDestination getTableDestination(
-            ValueInSingleWindow<GoldenGateElement> value,
-            String outputProject,
-            String outputDataset,
-            String schemaReplacer) {
-
-        TableDestination destination;
-        if (value != null) {
-            GoldenGateElement el = value.getValue();
-
-            String tableName = el.getTableName();
-            if (schemaReplacer != null) {
-                tableName = tableName.replace(schemaReplacer + ".", "");
-            }
-
-            destination =
-                    new TableDestination(
-                            String.format(
-                                    "%s:%s.%s",
-                                    outputProject, outputDataset, tableName),
-                            null);
-
-        } else {
-            throw new RuntimeException(
-                    "Cannot retrieve the dynamic table destination of an null message!");
-        }
-
-        return destination;
-    }
 
 
-    static class KafkaMessageToGoldenGatelementFn
-            extends DoFn<String, GoldenGateElement> {
 
-
-        String metadataField;
-
-        KafkaMessageToGoldenGatelementFn(String metadataField) {
-            this.metadataField = metadataField;
-        }
+    static class KafkaMessageToTableRowFn
+            extends DoFn<KV<String, String>, TableRow> {
 
 
         @ProcessElement
         public void processElement(ProcessContext context) {
-            GoldenGateElement el = new GoldenGateElement(context.element(), metadataField);
-            if (el.getTableName() != null) {
-                context.output(el);
-            }
+            TableRow row = new TableRow();
+
+
+                row.set("key", context.element().getKey());
+
+                JsonObject jsonObject = new JsonParser().parse(context.element().getValue()).getAsJsonObject();
+
+                row.set("op_ts", jsonObject.get("op_ts").getAsString());
+                row.set("current_ts", jsonObject.get("current_ts").getAsString());
+                row.set("pos", jsonObject.get("pos").getAsString());
+                if(jsonObject.get("before") != null ) {
+                    row.set("before", jsonObject.get("before").getAsJsonObject().toString());
+                }
+                if(jsonObject.get("after") != null) {
+                    row.set("after", jsonObject.get("after").getAsJsonObject().toString());
+                }
+                row.set("op_type", jsonObject.get("op_type").getAsString());
+                row.set("table", jsonObject.get("table").getAsString());
+
+            context.output(row);
         }
     }
 

@@ -1,0 +1,124 @@
+[
+  {
+    "name": "SS_SOLD_DATE_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_SOLD_TIME_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_ITEM_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_CUSTOMER_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_CDEMO_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_HDEMO_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_ADDR_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_STORE_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_PROMO_SK",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_TICKET_NUMBER",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_QUANTITY",
+    "type": "INTEGER"
+  },
+  {
+    "name": "SS_WHOLESALE_COST",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_LIST_PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_SALES_PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_EXT_DISCOUNT_AMT",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_EXT_SALES_PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_EXT_WHOLESALE_COST",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_EXT_LIST_PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_EXT_TAX",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_COUPON_AMT",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_NET_PAID",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_NET_PAID_INC_TAX",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SS_NET_PROFIT",
+    "type": "FLOAT"
+  },
+  {
+    "fields": [
+      {
+        "name": "op_ts",
+        "type": "STRING"
+      },
+      {
+        "name": "current_ts",
+        "type": "STRING"
+      },
+      {
+        "name": "pos",
+        "type": "STRING"
+      },
+      {
+        "name": "before",
+        "type": "STRING"
+      },
+      {
+        "name": "tablename",
+        "type": "STRING"
+      },
+      {
+        "name": "operation",
+        "type": "STRING"
+      }
+    ],
+    "name": "METADATA",
+    "type": "RECORD"
+  }
+]
