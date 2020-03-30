@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-java -jar tpcds.jar --scale $SCALE --parallelism 4
+java -jar tpcds.jar --scale $SCALE --parallelism $PARALLELISM
 
 now=$(date "+%Y.%m.%d-%H.%M.%S")
 
