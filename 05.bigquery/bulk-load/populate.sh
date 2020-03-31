@@ -3,8 +3,6 @@
 
 set -e
 
-#bq --project_id=${PROJECT} mk ${DATASET}
-
 bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.call_center ${GCS_URL}/call_center* \
 cc_call_center_sk:integer,\
 cc_call_center_id:string,\
