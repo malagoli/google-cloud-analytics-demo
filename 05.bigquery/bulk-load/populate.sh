@@ -235,7 +235,7 @@ c_last_review_date:string
 bq --project_id=${PROJECT} load --field_delimiter '|' --null_marker '' --ignore_unknown_values ${DATASET}.date_dim ${GCS_URL}/date_dim_* \
 d_date_sk:integer,\
 d_date_id:string,\
-d_date:string,\
+d_date:date,\
 d_month_seq:integer,\
 d_week_seq:integer,\
 d_quarter_seq:integer,\

@@ -20,7 +20,7 @@ gsutil cp -r ./python-docs-samples/third_party/apache-airflow/plugins/gcs_plugin
 
 
 ## copy the data fusion operator
-git clone git@github.com:malagoli/airflow.git
+git clone git@github.com:apache/airflow.git
 
 mkdir -p plugins/airflow_next_release/providers/google/cloud/hooks/
 mkdir -p plugins/airflow_next_release/providers/google/cloud/operators/
